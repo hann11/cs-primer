@@ -1,31 +1,34 @@
-import sys
 import re
+import sys
 
-def convert_hex_rgb(hex: str):
+hex_dec_map = dict(zip("0123456789abcdef", range(16)))
+
+
+def convert_hex_to_dec(hex_xx: str) -> int:
+    return (hex_dec_map[hex_xx[0]] << 4) + hex_dec_map[
+        hex_xx[1]
+    ]  # shift by 4 bits or multiply by 16
+
+
+def convert_hex_rgb(hex: str) -> str:
     """
     Takes in a hex string like #aabbcc and converts to 3 integers based on the 3 bytes
     """
-    #1. convert to bytes
-    bytes_rep = bytes.fromhex(hex.strip("#"))
-    # can also do by splitting hex into 2 chars each then convert to int with base 16 conversion
-    # add to bytes array and return the bytes from it
+    hex = hex.strip("#")
 
-    #2. add the bytes rep to integers like we did in protobuf varint.
-    r,g,b = 0,0,0
-    r |= bytes_rep[0]
-    g |= bytes_rep[1]
-    b |= bytes_rep[2]
+    r_int = convert_hex_to_dec(hex[:2])
+    g_int = convert_hex_to_dec(hex[2:4])
+    b_int = convert_hex_to_dec(hex[4:6])
 
-    return f"rgb({r} {g} {b})"
+    return f"rgb({r_int} {g_int} {b_int})"
+
+
+def transform_match(match: re.Match):
+    hex = match.group(1)
+
+    return convert_hex_rgb(hex)
+
 
 if __name__ == "__main__":
-    hex = "#fe030a"
-    print(convert_hex_rgb(hex))
-
-    lines = sys.stdin.readlines()
-    for line in lines:
-        match = re.findall(r"#([0-9a-fA-F]{6})", line)
-        if len(match) == 0:
-            print(line)
-        else:
-            print(convert_hex_rgb(match[0]))
+    input = sys.stdin.read()
+    print(re.sub(r"#([0-9a-fA-F]{6})", transform_match, input))
