@@ -51,25 +51,37 @@ shifting right is a floor division by 2
 32 bit becomes 16, 16 8 etc.
 
 ## byte operations faster than integer arithmetic
-+ is integer addition on binary
-| is bitwise or can achieve something similar
+
+- is integer addition on binary
+  | is bitwise or can achieve something similar
+
+shift by n bits faster than multiplying by 2^n?
+
+look at the intel coffee lake docs: latency is cpu cycles
+reciprocal throughput; independent instructions done together
+0.25 throughput, if can do 4 at once, 0.25 each
+
+shifting had more throughput than multiplication
+
+comparing cpu cycles/throughput for arithmetic vs. bit shifting
 
 ## what is a byte
+
 unit of addressable memory
 what you get back from an address in ram gives 1 byte
 
 8 bits is an octet (sequence of 8bits)
 
-
 ## why are bytes 0-255?
+
 1byte fits 256 possibilities (0-255)
 8 bits for 0 or 1
 2^8 = 256
 
 binary 1 1 0
-1 * 2^2 + 1 * 2^1 + 1 * 2^0
+1 _ 2^2 + 1 _ 2^1 + 1 \* 2^0
 
 ## stdin, stdout (unix)
+
 simplify reading from input and sending to output
 interact with program in unix shell
-
