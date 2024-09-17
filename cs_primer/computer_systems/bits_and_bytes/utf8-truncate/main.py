@@ -2,6 +2,7 @@ with open("cases", "rb") as f:
     transformed = b""
     for line in f:
         # drop the trailing newline
+
         line = line[:-1]
 
         trunc_length = int(line[0])
