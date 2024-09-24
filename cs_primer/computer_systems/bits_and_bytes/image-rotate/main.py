@@ -10,6 +10,7 @@ offset = original_bmp[10:14]  # in little endian
 width = original_bmp[18:22]  # in little endian
 height = original_bmp[22:26]  # in little endian
 
+
 print(f"{bm_header=}")
 print(f"{size_bmp=}")
 print(f"{res_1=}")
