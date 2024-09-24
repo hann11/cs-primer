@@ -4,6 +4,8 @@ very little encoded in text; mostly bytes and other encodings, binary encodings.
 
 protocol encoding; variable width. here we deal with variable width integers
 
+note (realisation): given variable width, we need a way to know when the integer ends, using most significant bits (1 or 0), we store 7 bits at a time.
+
 wire format; encoding of bytes transmitted across a network, even avro, can encode schemas, encode/decode fast. json not designed for this.
 
 fixed width doesnt make sense for small numbers, variables a bit nicer

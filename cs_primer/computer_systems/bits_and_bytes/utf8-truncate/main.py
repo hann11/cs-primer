@@ -11,7 +11,9 @@ with open("cases", "rb") as f:
         line = line[1:]
 
         if trunc_length < len(line):
-            while line[trunc_length] & 0xC0 == 0x80:
+            while (
+                line[trunc_length] & 0xC0 == 0x80
+            ):  # if the byte is a continuation byte, drop it to prevent invalid utf-8
                 trunc_length -= 1
 
         newline = line[:trunc_length]

@@ -51,8 +51,49 @@ def decode(concealed_message: float) -> str:
     return hex_bytes.decode("utf-8")
 
 
-concealed_message = conceal("hello")
+def conceal_oz(message: str) -> float:
+    """
+    Conceal a message in the significand of a nan
+    """
+    bs = message.encode("utf-8")
+    n = len(bs)
+    if n > 6:
+        raise ValueError("Message must be less than 6 bytes")
 
-print(type(concealed_message))
+    first = b"\x7f"  # first nibble (0111) next nibble is 1111 - accounts for 7 exp bits. need the next 4 exp bits
 
-print(decode(concealed_message))
+    second = (0xF8 ^ n).to_bytes(
+        1, "big"
+    )  # next 4 exp bits are 1111 (f), then we have 1 (1000 = 8), followed by the length in the next 3 bits
+    # ^ is an xor to add the length
+
+    # now encode the message (48 bits)
+
+    padding = b"\x00" * (6 - n)
+    payload = bs
+
+    return struct.unpack(">d", first + second + padding + payload)[0]
+
+
+def extract(x):
+    # get bytes back from packing to bytes
+    bs = struct.pack(">d", x)
+
+    n = len(bs)
+
+    length_message = bs[1] & 0x07  # get length back, bitmask 0111
+
+    ind = n - length_message
+
+    return bs[ind:].decode("utf-8")
+
+
+concealed_message = conceal_oz("hello")
+
+print(concealed_message)
+
+print(extract(concealed_message))
+
+# print(type(concealed_message))
+
+# print(decode(concealed_message))

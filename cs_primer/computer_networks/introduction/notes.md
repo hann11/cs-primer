@@ -1,6 +1,22 @@
-import socket
+## tcp vs udp
 
+https://csprimer.com/watch/tcp-udp/
 
+udp is like tcp without features
+
+both use ports to get a message to a destination process
+both have src and dest ports
+
+have 16bit checksums
+
+otherwise udp doesn't have much else
+doesn't handshake
+doesn't setup a connection
+no protocols
+
+udp sockets - no connection, no state, no handshake
+
+```
 def tcp_socket_server(port: int = 8080):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(("", port))
@@ -49,15 +65,21 @@ def udp_socket_server(port: int = 8080):
 
     finally:
         server.close()
+```
 
+above, created 2 socket servers.
 
-if __name__ == "__main__":
-    tcp_socket_server()
+first one is tcp, which requires SOCK_STREAM to create a tcp socket - this is connection based, must accept connection.
 
-# >>> s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# >>> s.connect(("127.0.0.1", 8080))
-# >>> s.send(b"hello")
-# 5
-# >>> s.recv(1000)
-# b'HELLO'
-# >>> s.fileno()
+udp server needs DGRAM, doesnt require a connection to send/receieve data. can terminate the server and restart and still receive. cant for tcp.
+
+trying to send to dead tcp server:
+
+```
+s.send(b"hello")
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+BrokenPipeError: [Errno 32] Broken pipe
+```
+
+udp works tho

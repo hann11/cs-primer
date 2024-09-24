@@ -13,24 +13,28 @@ def encode(num: int) -> bytes:
         byte_array.append(
             (num & 0x7F) | 0x80
         )  # num & 0x7f isolates the lower 7bits of the number .. 0x80 adds the msb (10000000)
-        num >>= 7  # bit shift 7 places
+        num >>= 7  # bit shift 7 places ( we encode 7 bits at a time )
 
     # don't add msb as no more bytes to add after this
     byte_array.append(num & 0x7F)
 
     return bytes(byte_array)
 
+
 def decode(byte_input: bytes) -> int:
     """
     Reverse encoding. Need to do it in little endian order because encode was big endian?
     """
-    #take first byte, drop msb, take 7bits, then shift 7 across.
+    # take first byte, drop msb, take 7bits, then shift 7 across.
     n = 0
-    for b in reversed(byte_input): # do it in little endian order.
+    for b in reversed(byte_input):  # do it in little endian order.
         n <<= 7
-        n |= (b & 0x7f) # take away the msb. this is  a bit addition keeps the same when 1
+        n |= (
+            b & 0x7F
+        )  # take away the msb. this is  a bit addition keeps the same when 1
 
     return n
+
 
 def encode_oz(num: int) -> bytes:
     """
@@ -38,7 +42,7 @@ def encode_oz(num: int) -> bytes:
     """
     out = []
     while num > 0:
-        part = num % 128 # TODO: bitmask for speed
+        part = num % 128  # TODO: bitmask for speed
         num >>= 7
         if num > 0:
             part |= 0x80
