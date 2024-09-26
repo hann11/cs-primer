@@ -18,6 +18,7 @@ def convert_le_to_int(byte_input: bytes) -> int:
 if __name__ == "__main__":
     with open("synflood.pcap", "rb") as f:
         file = f.read()
+        # print(f.read(24).hex())
 
     magic_number = file[:4]
     major_version = file[4:6]
@@ -27,6 +28,7 @@ if __name__ == "__main__":
     snapshot_len = file[16:20]
     link_layer_type = file[20:24]
 
+    print(f"{magic_number=}")
     print(f"{convert_le_to_int(magic_number)=}")
     print(f"{convert_le_to_int(major_version)=}")
     print(f"{convert_le_to_int(minor_version)=}")

@@ -83,3 +83,20 @@ BrokenPipeError: [Errno 32] Broken pipe
 ```
 
 udp works tho
+
+## binding to a port
+
+imagine a computer with 2 processes, a http server and a db server
+the computer has an ip address
+
+message hits computer, how does it know which process to send it to?
+
+each process has a port number, sender sends message to port number
+
+operating system has a table of port numbers and the process that is listening on that port
+
+when a process binds to a port, it tells the os to send messages to that port to the process
+
+process has a socket open and associated with a port
+
+consider it like an apartment building, each apartment has a number, mailman delivers mail to the apartment number
