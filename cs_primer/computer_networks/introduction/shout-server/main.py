@@ -35,6 +35,7 @@ def udp_socket_server(port: int = 8080):
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server.bind(("", port))
 
+    # udp connection - don't need to receive connections and hold, no tcp handshake
     try:
         while True:
             data, address = server.recvfrom(1000)

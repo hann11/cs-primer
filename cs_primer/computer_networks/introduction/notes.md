@@ -100,3 +100,25 @@ when a process binds to a port, it tells the os to send messages to that port to
 process has a socket open and associated with a port
 
 consider it like an apartment building, each apartment has a number, mailman delivers mail to the apartment number
+
+## what is a socket?
+
+an abstraction for syscalls to do with network stuff
+returns a file descriptor
+very operating system based, handles a lot of abstraction
+user requests a socket via a syscall, OS handles it in kernel space and gives it back
+socket socket.SOCK_STREAM, socket.AF_INET, sets up an ipv4, TCP connection
+if you send data I think the ip and tcp parts are handled for you, probably the link/physical layer too
+
+## network layer model
+
+layer 7: application layer (http, dns)
+layer 4: transport layer (tcp, udp)
+layer 3: network layer (ip)
+layer 1/2: link/physical layer (ethernet, wifi 802.11)
+
+encapsulated and appended to eachother in a network packet
+headers within each tell you info about it,
+all in bytes
+
+http has \r\n for newline b/w headers, \r\n\r\n for body after headers
