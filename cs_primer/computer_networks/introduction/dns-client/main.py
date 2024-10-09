@@ -2,6 +2,10 @@ import random
 import socket
 import struct
 
+"""
+Constructs a DNS Query according to RFC 1035
+"""
+
 
 def construct_dns_query(hostname: str) -> bytes:
     random_id = random.randint(0, 65535)
@@ -70,7 +74,13 @@ def parse_response_from_dns_server(
 
     answer = response[12 + q_len :]
 
-    _, _, _, rdlength = struct.unpack("!HHLH", answer[2:12])
+    name_len = 0
+    for byte_piece in answer:
+        if byte_piece == 0x00:
+            break
+        name_len += 1
+
+    _, _, _, rdlength = struct.unpack("!HHLH", answer[name_len:12])
 
     rdata = answer[12 : 12 + rdlength]
 
