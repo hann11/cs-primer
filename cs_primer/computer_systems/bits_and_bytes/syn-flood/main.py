@@ -20,6 +20,8 @@ if __name__ == "__main__":
         file = f.read()
         # print(f.read(24).hex())
 
+    print(len(file))
+
     magic_number = file[:4]
     major_version = file[4:6]
     minor_version = file[6:8]
@@ -43,26 +45,60 @@ if __name__ == "__main__":
     ack_count = 0
     packet_count = 0
     while offset < len(file):
-        header = file[offset : offset + 16]
-        packet_length = convert_le_to_int(header[8:12])
+        # for _ in range(1000):
+        pcap_header = file[offset : offset + 16]
+        packet_length = convert_le_to_int(pcap_header[8:12])
+        print(f"{packet_length=}")
 
         packet = file[offset + 16 : offset + 16 + packet_length]
 
-        version_ihl = packet[4]
+        link_layer = packet[:4]
+        print(f"{link_layer=}")
+        print(f"{convert_le_to_int(link_layer)=}")
+
+        ip_tcp_bytes = packet[4:]
+        version_ihl = ip_tcp_bytes[0]
         ihl = version_ihl & 0x0F
-        ihl_bytes = ihl * 32 // 8
+        ihl_len = ihl * 4
 
-        tcp_header = packet[4 + ihl_bytes :]
-        flags = tcp_header[12:14]
+        ip_bytes = ip_tcp_bytes[:ihl_len]
+        tcp_bytes = ip_tcp_bytes[ihl_len:]
 
-        syn = (flags[0] & 0x02) >> 1
-        ack = (flags[0] & 0x10) >> 4
+        total_length_ip_bytes = ip_bytes[2:4]
+        source_ip_bytes = ip_tcp_bytes[12:16]
+        destination_ip_bytes = ip_tcp_bytes[16:20]
+
+        total_length = convert_le_to_int(total_length_ip_bytes)
+        source_ip = ".".join(str(b) for b in source_ip_bytes)
+        destination_ip = ".".join(str(b) for b in destination_ip_bytes)
+
+        print(f"{total_length=}")
+        print(f"{source_ip=}")
+        print(f"{destination_ip=}")
+
+        tcp_header = packet[4 + ihl_len :]
+        source_port = tcp_header[:2]
+        destination_port = tcp_header[2:4]
+        sequence_number = tcp_header[4:8]
+
+        print(f"{convert_le_to_int(source_port)=}")
+        print(f"{convert_le_to_int(destination_port)=}")
+
+        flags = tcp_header[13]
+
+        syn = flags & 0x02 >> 1
+        ack = flags & 0x10 >> 4
+
+        print(f"{syn=}")
+        print(f"{ack=}")
 
         syn_count += syn
         ack_count += ack
         packet_count += 1
 
         offset += 16 + packet_length
+
+        break
 
     print(f"{syn_count=}")
     print(f"{ack_count=}")
