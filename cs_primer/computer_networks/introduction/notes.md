@@ -301,3 +301,34 @@ IP address comes back to the original client.
 Now, HTTP query, using a TCP socket, TCP header, dst port 80 for HTTP. IP header, ethernet header and footer.
 
 same movement across the internet.
+
+## latency vs throughput
+
+latency: amount of time waiting (sitting latent)
+-> request sits waiting to be processed
+
+throughput: rate at which something can be done
+-> rate of requests that can be processed (requests per second)
+
+short pipe: shorter time for water to flow through a pipe
+
+independent of the width of the pipe. takes same amount of time as the original pipe, higher throughput (pipe width)
+
+cdn: reduce latency - distribute content geographically. more proximate to users.
+
+**latency bound: speed of light**. usually around 2x speed of light. photon around the equator can go 7 times round the earth per second.
+network packet could go 3-4 times around the world per second.
+
+personal thought: is network latency and cpu latency of a webserver different? if doing no compute, packet should just send/receive. cpu bound process would increase that. caching probably verrrrry nice.
+
+can approximate europe to australia. query euro webserver from australia. probably order of hundreds of ms.
+
+however, huge improvements in throughput over time. we have means of increasing throughput; 1gb fiber connection, run more.
+
+if you don't care about latency, just get more horizontal machines in your data centre
+
+what kind of re-try protocol / re-transmission do we want?
+
+given 2 parties, given a TCP segment sent, waiting for ACK before sending next segment, we wait for roundtrip time. Then throughput is a function of the latency.
+what if send a whole bunch of packets per roundtrip time before the ack, then not so bound by latency.
+put 1 drop in a pipe vs fully loading a pipe, not worrying about ack/pipe length.
