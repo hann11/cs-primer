@@ -1,79 +1,116 @@
+import random
 import socket
 
-# TODO: implement a proxy socket, that forwards and returns responses from a server
+from loguru import logger
 
-# the server is hosted at localhost:9000
+PORT = random.randint(0, 0xFFFF)
+OWN_ADDRESS = (
+    "0.0.0.0",
+    PORT,
+)  # 0.0.0.0 is a wildcard address, listens on all interfaces on the machine
+UPSTREAM_ADDRESS = (
+    "127.0.0.1",
+    9000,
+)  # designated loopback address, refers to local machine, outbound and mirrored back to the os
 
-# plan:
-# create a tcp socket, listening on a given PORT
-# while True, wait for connection
-# accept the connection
-# listen for data, when it arrives:
-# connect to the server using a socket
-# While True, send data to server, receive response in parts, send response back to client
-# close connection when no longer receiving data, or keyboard interrupt
 
 if __name__ == "__main__":
-    PORT = 8026
-    listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    listening_socket.bind(("", PORT))
+    proxy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    proxy_socket.bind(OWN_ADDRESS)
 
-    listening_socket.listen(1)  # only one connection at a time
-    print(f"Listening for connections on port {PORT}")
+    proxy_socket.listen()  # only one connection at a time
+    logger.info(f"Listening for connections on {OWN_ADDRESS}")
+    keepalive = False
 
-    try:
-        while True:
-            incoming_connection, address = listening_socket.accept()
+    while True:
+        try:  # avoid any errors that can crash your server, want it long running
+            # while True:
+            client_socket, client_address = proxy_socket.accept()
 
-            print(f"Accepted connection with address {address}")
+            logger.info(f"Accepted connection with address {client_address}")
 
-            while True:
-                incoming_data = incoming_connection.recv(1000)
+            incoming_data = client_socket.recv(4096)
 
-                print(f"Received {len(incoming_data)} bytes from client")
+            req_headers, req_body = incoming_data.split(b"\r\n\r\n", 1)
 
-                # parse the incoming data for the Connection header. If it is keep-alive, then we will NOT break when no data is sent.
+            req, headers = req_headers.split(b"\r\n", 1)
+            method, path, protocol = req.split(b" ")
 
-                decoded_data = incoming_data.decode("utf-8")
-                info_header, body = decoded_data.split("\r\n\r\n")
-                info_header = info_header.split("\r\n")
-                info = info_header[0]
-                for header in info_header[1:]:
-                    key, val = header.split(": ")
-                    if key == "Connection":
-                        keepalive_str = val
+            for header in headers.split(b"\r\n"):
+                if header.startswith(b"Connection:"):
+                    connection = header.split(b": ")[1].decode("utf-8")
+                    if connection == "keep-alive":
+                        keepalive = True
+                    else:
+                        keepalive = False
 
-                if not incoming_data and keepalive_str != "keep-alive":
-                    print("No more incoming data, but keepalive connection")
+            logger.debug(
+                f"Received request {method} {path} {protocol} with Connection: {connection}, total {len(incoming_data)} bytes from client"
+            )
+
+            upstream_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            upstream_socket.connect(UPSTREAM_ADDRESS)
+
+            upstream_socket.send(incoming_data)
+            logger.debug(f"Sent {len(incoming_data)} bytes from client")
+
+            response_to_proxy = b""
+
+            while True:  # need to loop as packets might be split, in the case of response bodies governed by the content length header
+                # curl (18): transfer closed with outstanding read data remaining
+                # knows that server has to send content but connection is closed if we don't loop
+                server_response_bytechunk = upstream_socket.recv(4096)
+                logger.debug(
+                    f"Received {len(server_response_bytechunk)} bytes from server"
+                )
+                response_to_proxy += server_response_bytechunk
+                if not server_response_bytechunk:
+                    client_socket.send(response_to_proxy)
+                    logger.debug(
+                        f"Sent {len(response_to_proxy)} bytes to client from server"
+                    )
                     break
 
-                server_socket = socket.socket(
-                    socket.AF_INET, socket.SOCK_STREAM
+            # side note; one can open sockets in a context manager, with socket.socket() as s: as it is a file descriptor like object
+            # that way, the socket is closed automatically when the block is exited
+
+            # logger.debug(
+            #     f"Closing client connection with address {client_address}"
+            # )
+            # client_socket.close()
+            upstream_socket.close()
+            logger.debug("Closed connection with server")
+
+            if not keepalive:
+                client_socket.close()
+                logger.debug(
+                    f"Closing client connection with address {client_address}"
                 )
-                server_socket.connect(("127.0.0.1", 9000))
 
-                server_socket.send(incoming_data)
-                print(f"Sent {len(incoming_data)} bytes from client")
+        except (
+            ConnectionRefusedError
+        ):  # if the server is down, we can't connect to it
+            logger.error("Connection to server refused")
+            resp_body = b"<html><body><h1>502 Bad Gateway</h1></body></html>"
+            resp_req_headers = f"HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/html\r\nContent-Length: {len(resp_body)}\r\n\r\n".encode(
+                "utf-8"
+            )
+            client_socket.send(resp_req_headers + resp_body)
 
-                response_to_proxy = b""
+        except OSError as e:
+            logger.error(f"An error occurred: {e}")
+            resp_body = (
+                b"<html><body><h1>500 Internal Server Error</h1></body></html>"
+            )
+            resp_req_headers = f"HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: {len(resp_body)}\r\n\r\n".encode(
+                "utf-8"
+            )
+            client_socket.send(resp_req_headers + resp_body)
 
-                while True:
-                    server_response_bytechunk = server_socket.recv(4096)
-                    print(
-                        f"Received {len(server_response_bytechunk)} bytes from server"
-                    )
-                    response_to_proxy += server_response_bytechunk
-                    if not server_response_bytechunk:
-                        # I think we need to send back to connection keep alive header here to prevent new conns
-                        print(response_to_proxy)
-                        incoming_connection.send(response_to_proxy)
-                        print(
-                            f"Sent {len(response_to_proxy)} bytes to client from server"
-                        )
-                        break
+        finally:
+            if upstream_socket:
+                upstream_socket.close()
+            if client_socket:
+                client_socket.close()
 
-            # print(f"Closing connection with address {address}")
-            # incoming_connection.close()
-
-    except KeyboardInterrupt:
-        incoming_connection.close()
+    proxy_socket.close()
