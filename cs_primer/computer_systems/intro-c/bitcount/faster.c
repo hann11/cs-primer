@@ -4,8 +4,8 @@
 int bitcount(unsigned int x) {
     int b = 0;
     while (x) { // while bits are left, do something. truth is nonzero in C, no bool type
-        b += x & 0x01;
-        x >>= 1;
+        x &= (x - 1); // clear the rightmost 1 bit
+        b++;
     }
     return b;
 }
