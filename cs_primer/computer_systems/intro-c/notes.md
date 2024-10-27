@@ -173,3 +173,100 @@ for and while will give the same machine code
 do while will have diff machine code
 
 ## compiler flags
+
+## pointers and arrays
+
+consider memory for a process as a long set of cells
+0 to 2^(32, 48, whatever)
+each byte is a spot in memory
+
+if there is an int at spot 40, it'll take 4 bytes (40, 41,42,43) store the value of n = 5
+
+you can also refer to n by it's location
+say a function will modify n in place - impossible if you just pass n into a function.
+the n will just be copied and won't update the n at spot 40 inplace.
+need to pass the memory address inc(&n) <- get the location of n. the value is still 5. inc can then de-reference that, change it, etc.
+
+if you have an indeterminate length thing like a string, quite hard to not do anything but point to the start.
+
+can dereference the pointer and follow it.
+if two functions operate on a string, normally referencing the starting location of the first byte.
+
+if we run
+
+```
+# include <stdio.h>
+
+int main () {
+   int n = 5;
+   printf("n = %d, &n = %p\n", n, &n);
+}
+```
+
+returns
+
+```
+n = 5, &n = 0x16d52b21c
+```
+
+&n is the memory address of n
+
+we can follow and de-reference it.
+
+we can declare a pointer under int n = 5;
+`int *p = &n;`
+
+we can also get and dereference a pointer
+`int foo = *p`
+print foo, returns 5.
+
+diff name for the same physical thing in memory
+retreivd from address
+see the basic operation of obatining address and dereferencing
+
+### arrays
+
+arrays are syntax for pointers basically
+
+think array as name of starting location for a thing
+
+```
+int main () {
+    int arr[10];
+
+    printf("arr = %p, arr+1 = %p\n", arr, arr+1);
+}
+```
+
+returns the in memory address of arr, then arr + 1 which is 4 bytes more than arr. takes to the next integer.
+
+```
+int main () {
+    int arr[10];
+
+    arr[3] = 42;
+
+    printf("arr[3] = %d\n", arr[3]);
+    // printf("arr = %p, arr+1 = %p\n", arr, arr+1);
+}
+```
+
+syntax says take the location of this sequence of integers in memory
+the integers i the array are sequential in memory
+arr[3] will be 42.
+
+if we print arr + 3, we will get the memory address of arr + 3 ( 12 bytes in bc ints)
+if we print \*(arr+3), we will get the actual value of arr[3] = 42
+
+## macros/preprocessor
+
+define functions/macros, it'll replace the text where you call it in the code as a preprocessing step bfore compiling
+
+conditional inclusing
+
+#define DEBUG 1
+
+it'll do the below
+#if DEBUG ==1
+do xyz
+#endif
