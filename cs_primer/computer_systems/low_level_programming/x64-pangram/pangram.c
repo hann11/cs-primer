@@ -1,24 +1,18 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
+
+#define MASK 0x07fffffe
 
 bool ispangram(char *s) {
-
-  int bitvec = 0;
+  uint32_t bs = 0;
   char c;
-
-  while (*s != '\0') { // deference the pointer
-    c = *s;
-    if ('A' <= c && c <= 'Z') { // convert to lower case
-      c += 32;
-    }
-    if ('a' <= c && c <= 'z') {
-      bitvec |= (1 << (c - 'a'));
-    }
-    s++;
+  while ((c = *s++) != '\0') {
+    if (c < '@')
+      continue; // ignore first 64 chars in ascii table
+    bs |= 1 << (c & 0x1f);
   }
-  return bitvec == 0x3ffffff;
+  return (bs & MASK) == MASK;
 }
 
 int main() {
