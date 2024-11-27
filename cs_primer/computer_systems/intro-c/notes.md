@@ -270,3 +270,109 @@ it'll do the below
 #if DEBUG ==1
 do xyz
 #endif
+
+## structs in C
+
+group a bunch of variables together - for convenience, or value if you have a bunch of structs like an array of structs, maybe rows in a DB. types vary within the struct. lots might follow the pattern e.g rdb.
+
+consider as objects without methods.
+
+// each struct must be the same size.
+// array of structs; c compiler finds fixed size, go to n times that for the nth thing, then find the field
+
+frequently might work on pointers to structs
+if invoking functions, passing struct as arg or return value; the entire struct will copy. large struct, it'll copy onto stack taking time/space.
+so just reference them
+s
+
+syntatic sugar; struct user \* p = &u2;
+
+how are the structs laid out?
+age 4bytes, postcode 2bytes, char pointer 8bytes.
+struct should be laid out with space (contiguously)
+
+```
+printf("%p %p %p %p\n", &u, &(u.age), &(u.postcode), &(u.name)); // mem locs
+```
+
+```
+0x16f8ff240 0x16f8ff240 0x16f8ff244 0x16f8ff248
+```
+
+age at the start of the struct location.
+short should be 2bytes but its 4bytes in after age. just so the char pointer 8bytes is properly aligned! compiler takes care of it
+
+struct just lays out data in memory, nice to access things by name.
+
+array of structs would be nice.
+
+consider how the arrays are laid out too. C needs to be able to do this referencing in constant time, say array of ararys (multid array of structs)
+don't want to iterate thru. thus need fixed size, contiguous layout for constant time indexing.
+compiler figures out struct size, how to get to start, then how to address postcode for example.
+
+## malloc
+
+c standard lib function
+
+can manage heap memory.
+
+not a syscall, but might perform syscalls if needs more space from the OS.
+
+given your heap, large amount of ubnstructured space. might want to use some of that space and not care about whats used around it.
+stack is for fn locals
+
+if u want 10bytes somewhere, malloc will find it. gives you 10bytes free, gives starting byte location, as a void pointer.
+
+how it works; linked list (free list) if you had a notion of the avail regions of memory, you can have a structure to allocate over free space for the user to store data.
+when something is freed from malloc, add a node to the free list. it won't clear the mem, just shows mem alloc theres afree spot for xbytes next time.
+
+complicatons with multithreads, we'll mayb see this in OS.
+
+## void pointer
+
+might want a situation that something is a given type. dynamic typing; don't need to worrya bout it. consider python
+
+l = [1, 3.4, "foo", []] <- any python object can go in a list or dict values.
+
+```
+class Box:
+    def __init__(self, name, value): # dont specify types
+        self.name = name
+        self.value = value
+```
+
+b = Box("foo", 3)
+b2 = Box("bar", b) - can literally do anything with the types bc its not strictly typed
+
+type system to protect or compiler needs to lay things out in memory in particular
+
+in C can be generic by working with memory addresses. The Void pointer does this. Doesn't care about the type.
+
+C compiler gives 8bytes for a pointer
+
+```
+voids.c:12:39: warning: format specifies type 'char *' but the argument has type 'void *' [-Wformat]
+    printf("values are: %s and %d\n", b1.value, b2.value); // need to know the actual type for printing
+```
+
+cast to char pointer to fix.
+
+wnt to be generic; array to contain anything; need to use generic pointers. cast to type just as you need it.
+
+eg2. hypothetically; alot of thought into quicksort, its a good impl. did it over integers. do you need another quicksort over strings or floats? core logic implemented. want to use it generically.
+solvable with voids.
+
+man 3 qsort
+
+qsort fn;
+qsort of anything (void \*base) - notjust voids 8bytes, or structs 20/32bytes, int 4bytes. variable length.
+\*base is the generic pointer to array of "things", just a memory address. needs to know how many elements in the array, and how big each one is.
+
+say array of 10 32bit ints. size_t nel is 10, size_t width is 4. then qsort can operate over anytype. looks at byte byte byte, compare.
+
+howto compare strings?
+qsort expects you to provide reference to comparison function , int (\*compare), must be afunction that accepts two args, two strings / ints, accepts as void pointers, and then applies.
+
+just suply a comparsion fn like string compare, int compare etc - requires work but the logic for quicksort is generic. pretty nice.
+
+rememb; void pointer is specific name, diff to the name void for fn. indication to compiler that this is an address, but not a typed pointer or address to specific thing.
