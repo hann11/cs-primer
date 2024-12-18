@@ -82,7 +82,7 @@ to make it executable, need to run it through the LINKER.
 
 We can also step through the execution via LLDB.
 
-`lldb  ./hello`
+`lldb ./hello`
 
 `b main` to set breakpoint at main
 

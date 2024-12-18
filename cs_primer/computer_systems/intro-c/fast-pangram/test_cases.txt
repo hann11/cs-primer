@@ -1,4 +1,0 @@
-HEllo
-world
-LINE 3
-abCdefGHijklmnOpqrStuvWxYz

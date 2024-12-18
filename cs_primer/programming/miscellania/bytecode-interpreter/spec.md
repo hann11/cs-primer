@@ -1,13 +1,11 @@
-
 # The virtual computer
 
 The device we’re modeling is much simpler than a modern CPU; it has:
 
-* **256 bytes of memory**, simulated by an array with length 256
-* **Three 8-bit registers**: 2 general purpose registers and 1 for the “program counter”
-* **5 basic instructions**: load word, store word, add, subtract and halt
-* As a stretch goal, **4 more instructions**: add immediate, subtract immediate, jump, and branch if equal to zero
-
+- **256 bytes of memory**, simulated by an array with length 256
+- **Three 8-bit registers**: 2 general purpose registers and 1 for the “program counter”
+- **5 basic instructions**: load word, store word, add, subtract and halt
+- As a stretch goal, **4 more instructions**: add immediate, subtract immediate, jump, and branch if equal to zero
 
 # Memory
 
@@ -114,7 +112,6 @@ Your VM should follow the fetch-decode-execute format, which you can model in a 
 
 Your virtual computer should have one piece of internal state, an array of three registers: two general purpose registers and a program counter. Main memory is considered external state because it is passed in as an argument. The provided test suite will test your program against a number of such sequences of bytes.
 
-
 # Stretch goals
 
 If you have time, attempt to implement 4 additional instructions with the following opcodes:
@@ -126,13 +123,10 @@ jump    0x07
 beqz    0x08
 ```
 
-`addi` and `subi` are the "immediate" versions of `add` and `sub`. Instead of adding or subtracting the value stored at a memory location, they add/subtract the value stored as the second argument. E.g. `addi  r1  4` will result in r1 = r1 + 4.
+`addi` and `subi` are the "immediate" versions of `add` and `sub`. Instead of adding or subtracting the value stored at a memory location, they add/subtract the value stored as the second argument. E.g. `addi r1 4` will result in r1 = r1 + 4.
 
 `jump` has a single argument, which is the address that the program counter should be set to. It is absolute, i.e. "jump 40" will cause the program to continue from the 40th byte in memory. In practice, `jump` is used for such things as function calls.
 
 `beqz` has two arguments: a register and a relative offset amount. If the value in that register is zero, then the program counter should be increased or decreased by that offset amount (in addition to any increase due to the `beqz` instruction itself having been processed). Most instruction set architectures support a variety of such "conditional branch" instructions, which are used for such things as conditional statements, switch statements and loops.
 
 As a further stretch goal, you may also wish to implement some degree of memory protection, such as preventing instructions from being accidentally overwritten.
-
-
-

@@ -1,18 +1,17 @@
 /* https://www.w3.org/TR/css-color-4/#hex-notation */
 
 .six-digits {
-    color: #00ff00;
+  color: #00ff00;
 }
 
 .eight-digits.upper-case {
-    color: #0000FFC0;
+  color: #0000ffc0;
 }
 
 .three-digits {
-    color: #123;
+  color: #123;
 }
 
 .four-digits {
-    color: #00f8;
+  color: #00f8;
 }
-

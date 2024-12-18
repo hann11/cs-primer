@@ -23,7 +23,7 @@ def compute(memory):
     **        **... __
     ^==DATA===============^ ^==INSTRUCTIONS==============^
     """
-    registers = [8, 0, 0]  # PC, R1 and R2
+    # registers = [8, 0, 0]  # PC, R1 and R2
 
     while True:  # keep looping, like a physical computer's clock
         # op = TODO fetch the opcode
