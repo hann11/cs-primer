@@ -3,7 +3,7 @@ LOAD = 0x01
 STORE = 0x02
 ADD = 0x03
 SUB = 0x04
-HALT = 0xff
+HALT = 0xFF
 
 # Stretch goals
 ADDI = 0x05
@@ -23,11 +23,9 @@ def compute(memory):
     **        **... __
     ^==DATA===============^ ^==INSTRUCTIONS==============^
     """
-    registers = [8, 0, 0]  # PC, R1 and R2
+    # registers = [8, 0, 0]  # PC, R1 and R2
 
     while True:  # keep looping, like a physical computer's clock
         # op = TODO fetch the opcode
-        
         # if op == TODO decode the opcode and execuet
         break
-

@@ -82,3 +82,68 @@ r just stands for register
 rip - 64bit instruction pointer
 
 see all in lldb; `reg re --all`
+
+## system v amd64 calling convention
+
+need a convention for how to call FUNCTIONS
+set up arguments. when it jumps, code can be executed. knows what registers to look in and manipulate.
+
+knows how to return values.
+
+https://en.wikipedia.org/wiki/X86_calling_conventions
+
+go to System V AMD64 ABI, read as "unix amd64 calling convention"
+
+arguments with function invocation; up to 6 args. rdi, rsi, rdx, rcx, r8, r9
+floating point: xmm0 - xmm7
+more than 6 args go onto the stack.
+
+stack is in main memory. decent caching for the stack.
+
+ideally args in registers (happens for first 6)
+
+rax is the return address.
+
+demonstration:
+
+```
+int foo(int a) {
+    return a;
+}
+```
+
+mov eax, edi
+ret
+
+int a, int b
+return a+b
+
+lea eax, [rdi + rsi]
+ret
+
+calling a function; return address gets pushed to the stack.
+ret pops off the stack. wouldnt know where it is otherwise.
+
+int a, b, c, d, e f
+return a+b+c+d+e+f
+
+lea eax, [rdi+rsi]
+add eax, edx
+add eax, ecx
+add eax, r8d
+add eax, r9d
+ret
+
+int g
+return +g
+
+last:
+add eax, dword ptr [rsp+8]
+rsp must be the stack. abit slower than registers.
+
+some registers the "callee" should save. rbx, rsp, etc. must restore original values before returning control to the caller.
+
+oz uses eax then ecx as to use rbx, you push to stack, do wahtever, then pop off the stack.
+function caller expects rbx is retained.
+
+want to save rcx after /before function; push to stack and pop.

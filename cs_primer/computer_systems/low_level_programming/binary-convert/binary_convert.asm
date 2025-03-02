@@ -9,7 +9,7 @@ _base_loop:
 	inc rdi
 	cmp cl, 0
 	je _finish
-	and ecx, 0x1 ; get the last bit, same as subtracting 0x30
+	and ecx, 0x1 ; get the last bit, same as subtracting 0x30, but doesnt work if given wrong input not 01.
 	shl eax, 1
 	or eax, ecx
 	jmp _base_loop
