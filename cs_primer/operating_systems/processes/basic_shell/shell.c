@@ -14,19 +14,25 @@ volatile int currentpid = 0;
 void handle_sigint(int sig) {
 
     if (kill(currentpid, SIGKILL) == 0) {
-        printf("Killed process %d\n", currentpid);
+        printf("Killed child process %d\n", currentpid);
     }
     else {
         printf("Failed to kill process %d\n", currentpid);
     }
 }
 
-
-int do_command(char *filepath, char *input) {
-    char *argv[] = { filepath, input, NULL };
-    execvp(filepath, argv);
+int do_pipe (char *argv[], int argn) {
+    int j = 0;
+    while (j < argn) {
+        if (strcmp("|", argv[j]) == 0) {
+            return j;
+        }
+        j++;
+    }
     return 0;
 }
+
+int exc_pipe ()
 
 int main() {
     signal(SIGINT, handle_sigint);
@@ -36,12 +42,6 @@ int main() {
         shell_loop++;
         printf("shell > ");
         fgets(input, MAX_INPUT, stdin);
-        // printf("Your input was %s", input);
-
-        char *command, *do_what_with;
-        command = strtok(input, " ");
-        do_what_with = strtok(NULL, " ");
-
 
         if (strcmp(input, "exit\n") == 0) {
             printf("Exiting shell\n");
@@ -52,6 +52,18 @@ int main() {
             printf("Default help: just use it!\n");
             continue;
         }
+
+        int argn = 0;
+
+        char *argv[100];
+
+        argv[0] = strtok(input, " \t\n");
+
+        while (argv[argn] != NULL) {
+            argn++;
+            argv[argn] = strtok(NULL, " \t\n");
+        }
+
         
 
         // fork
@@ -63,21 +75,42 @@ int main() {
             waitpid(currentpid, &status, 0);
         }
 
-        else {
+        else if (currentpid == 0) {
             // child
-            
-            if (strcmp(command, "echo") == 0) {
-                printf("%s", do_what_with);
-                return 0;
-            }
-            if (strcmp(command, "sleep") == 0) {
-                int res = do_command(command, do_what_with);
-                return 0;
+            int do_pipe_true = do_pipe(argv, argn);
+
+            if (do_pipe_true > 0) {
+
+                int pipe_idx = do_pipe_true + 1;
+
+                int m = 0;
+
+                // todo need first part to pass
+
+
+                //second part.
+                char *pipe_args[5];
+                while (pipe_idx < argn) {
+                    pipe_args[m] = argv[pipe_idx];
+                    m++;
+                    pipe_idx++;
+
+                }
+                pipe_args[m] = NULL;
+
+                execvp(pipe_args[0], pipe_args);
+                
             }
             else {
-                printf("Command not found\n");
-                return 1;
+                // printf("no pipe\n");
+                execvp(argv[0], argv);
             }
+            
+
+        }
+
+        else {
+            perror("failed to fork");
         }
         
     }
