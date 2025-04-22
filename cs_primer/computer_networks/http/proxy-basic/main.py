@@ -20,26 +20,39 @@ def proxy_server(port: int = PORT):
             print(f"Listening for new connections on port {port}")
             client_s, client_addr = proxy_s.accept()
             print(f"Accepted connection from client on address {client_addr}")
+            client_s.settimeout(
+                100
+            )  # Set a timeout for the client socket, sometimes it hangs and wants to reconnect (marc.jpeg)
 
             while True:
                 server_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 server_s.connect(UPSTREAM_ADDRESS)
 
+                # while True:
+                print("AWAITING")
+                # client_data = b""
                 client_data = client_s.recv(4096)
+                print("recv")
 
                 if not client_data:
-                    break
+                    print("no data, closing")
+                    server_s.close()
+                    continue
 
                 print(f"-> *     {len(client_data)}B")
-                print(f"{client_data[:50]=}")
+                print(f"{client_data=}")
 
-                req_headers, req_body = client_data.split(b"\r\n\r\n", 1)
-                req, headers = req_headers.split(b"\r\n", 1)
+                req_headers, _ = client_data.split(b"\r\n\r\n", 1)
+                _, headers = req_headers.split(b"\r\n", 1)
+                print(_)
 
                 for header in headers.split(b"\r\n"):
                     if header.startswith(b"Connection:"):
                         connection = header.split(b": ")[1].decode("utf-8")
                         print(f"Connection: {connection}")
+                    if _.split(b"/")[2] == b"1.1":
+                        connection = "keep-alive"
+                    # todo else if http/1.1 then keepalive
 
                 server_s.send(client_data)
                 print(f"   * ->  {len(client_data)}B")
