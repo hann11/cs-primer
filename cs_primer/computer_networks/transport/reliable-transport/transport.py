@@ -41,12 +41,14 @@ class ReliableDelivery:
             if ack == seq:
                 logger.trace(f"rd.send: ACK received, {ack=}, {seq=}")
             else:
-                logger.trace(f"rd.send: ACK not received, {ack=}, {seq=}")
+                logger.trace(
+                    f"rd.send: ACK not received, {ack=}, {seq=}"
+                )  # wrong ack, resend and ask for another
                 self.seq -= 1
                 self.send(data)
         except socket.timeout:
             logger.trace(f"rd.send: Timeout, resending {data}")
-            self.seq -= 1
+            self.seq -= 1  # didnt receive ACK, resend
             self.send(data)
 
         # wait for resp
@@ -89,7 +91,7 @@ class ReliableDelivery:
 
 if __name__ == "__main__":
     logger.remove()
-    logger.add(sys.stderr, level="INFO")
+    logger.add(sys.stderr, level="TRACE")
     if len(sys.argv) > 1:
         rd = ReliableDelivery(port=int(sys.argv[1]))
         while True:
